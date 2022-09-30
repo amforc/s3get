@@ -1,25 +1,40 @@
 # S3Get
 
-[<img alt="build" src="https://img.shields.io/github/workflow/status/VeaaC/s3get/Shuffly%20CI/main?style=for-the-badge">](https://github.com/Veaac/s3get/actions?query=branch%3Amain)
-
 Download a single file from S3 using parallel downloads.
+
+More information on [Parasnaps](https://parasnaps.io/)
+
+## Available Regions
+
+| Region | City | S3 URI |
+|--|--|--|
+| Europe | Ireland | ```s3://euw1.parasnaps.io/``` |
+| Europe | Frankfurt | ```s3://euc1.parasnaps.io/``` |
+| US East | N. Virginia | ```s3://use1.parasnaps.io/``` |
+| US West | Oregon | ```s3://usw2.parasnaps.io/``` |
+| Asia Pacific | Singapore | ```s3://apse1.parasnaps.io/``` |
 
 ## Usage Examples
 
-Download a compressed archive and unpack it on the fly
-
+1. Download and extract snapshot
 ```sh
-s3get s3://my-bucket/my-key.tar.zstd -t 6 | pzstd -d | tar -xvf -
+# s3get s3://<S3 URI>/<filename> | tar -xf - -C <base-path>
+```
+- rocksdb
+```sh
+s3get s3://euc1.parasnaps.io/kusama_rocksdb.tar | tar -xf - -C ~/.local/share/polkadot/chains/ksmcc3/
+```
+- paritydb
+```sh
+s3get s3://euc1.parasnaps.io/kusama_paritydb.tar | tar -xf - -C ~/.local/share/polkadot/chains/ksmcc3/
 ```
 
-## Installation
-
-The CLI app can be installed with [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html):
-
+2. Run the polkadot node with:
+- rocksdb
 ```sh
-cargo install s3get
+polkadot --chain=kusama --database=rocksdb --state-pruning=1000
 ```
-
-## Why S3Get?
-
-Because neither s5cmd, s3cmd, nor aws-cli can offer fast parallel downloads while piping to stdout
+- paritydb
+```sh
+polkadot --chain=kusama --database=paritydb --state-pruning=1000
+```

@@ -3,6 +3,7 @@ use futures::TryStreamExt;
 use http::StatusCode;
 use rusoto_core::RusotoError;
 use rusoto_s3::{GetObjectRequest, HeadObjectRequest, S3Client, S3};
+use rusoto_core::credential::{AwsCredentials, StaticProvider};
 use std::cmp::Reverse;
 use std::collections::BTreeMap;
 use std::io::Write;
@@ -85,7 +86,11 @@ async fn region_and_size(
 ) -> anyhow::Result<(rusoto_core::Region, i64)> {
     let mut region: rusoto_core::Region = Default::default();
     for _ in 0..3 {
-        let client = S3Client::new(region.clone());
+        let client = S3Client::new_with(
+            rusoto_core::request::HttpClient::new().expect("Failed to creat HTTP client"),
+            StaticProvider::from(AwsCredentials::default()),
+            region.clone()
+        );
         let head = match client
             .head_object(HeadObjectRequest {
                 bucket: bucket.to_string(),
@@ -167,7 +172,11 @@ async fn run(args: &Args) -> anyhow::Result<()> {
         let max_retries = args.max_retries;
         tokio::spawn(async move {
             let data_sender = data_sender;
-            let client = S3Client::new(region);
+            let client = S3Client::new_with(
+                rusoto_core::request::HttpClient::new().expect("Failed to creat HTTP client"),
+                StaticProvider::from(AwsCredentials::default()),
+                region
+            );
             while let Ok((i, (start, end))) = iter_receiver.recv() {
                 let mut retry_count = 0;
                 let data = loop {
